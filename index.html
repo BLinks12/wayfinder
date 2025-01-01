@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>wayfinder.sh</title>
-  <link rel="icon" href="wf-logo.png" type="image/png">
   <style>
     /* ---------------- Global Layout ---------------- */
     body {
@@ -12,13 +11,13 @@
       display: flex;
       height: 100vh;
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #141414, #1c1c1c); /* Subtle dark gradient */
+      background: linear-gradient(135deg, #141414, #1c1c1c);
     }
 
     /* --------------- Sidebar ---------------- */
     .sidebar {
       width: 20%;
-      background-color: #fafafa; /* Light background */
+      background-color: #fafafa;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -27,7 +26,6 @@
       overflow-y: auto;
       border-right: 1px solid #ddd;
     }
-
     .sidebar button {
       padding: 12px 24px;
       font-size: 16px;
@@ -40,22 +38,22 @@
       margin-bottom: 20px;
       outline: none;
     }
-
     .sidebar button:hover {
       transform: scale(1.05);
-      background-color: #2f088f; /* Darker purple on hover */
+      background-color: #2f088f;
     }
 
-    .logo {
+    .token-badge {
+      font-size: 14px;
+      margin-bottom: 15px;
+      color: #666;
+      text-align: center;
       width: 80%;
-      max-height: 140px;
-      object-fit: contain;
-      margin-bottom: 20px;
     }
 
     .info-box {
       width: 80%;
-      background-color: #e8e8ff; /* Very pale purple to match token brand */
+      background-color: #e8e8ff; /* pale purple */
       color: #333;
       border-radius: 6px;
       padding: 10px;
@@ -79,23 +77,11 @@
       margin-bottom: 20px;
       border-radius: 4px;
     }
-
-    .log span {
-      display: block;
-    }
-
-    .log .info {
-      color: #0aff0a;
-    }
-    .log .equation {
-      color: #ff6161; /* Reddish for equations */
-    }
-    .log .calculation {
-      color: #ffb340; /* Orange for calculations */
-    }
-    .log .loading {
-      color: #ffd700; /* Gold-ish for loading */
-    }
+    .log span { display: block; }
+    .log .info { color: #0aff0a; }
+    .log .equation { color: #ff6161; }
+    .log .calculation { color: #ffb340; }
+    .log .loading { color: #ffd700; }
 
     .marker-counter {
       font-size: 16px;
@@ -110,32 +96,25 @@
       background-color: #141414;
       position: relative;
     }
-
     canvas {
       display: block;
     }
 
-    /* --------------- Twitter Icon ---------------- */
-    .twitter-icon {
+    /* --------------- Text Link for Twitter ---------------- */
+    .twitter-link {
       position: absolute;
       top: 10px;
       right: 10px;
-      width: 48px;
-      height: 48px;
-      cursor: pointer;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-    }
-
-    .twitter-icon:hover {
-      opacity: 1;
-    }
-
-    /* --------------- Token Info ---------------- */
-    .token-badge {
       font-size: 14px;
-      margin-bottom: 15px;
-      color: #666;
+      color: #aaa;
+      text-decoration: none;
+      background-color: #333;
+      padding: 6px 10px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    .twitter-link:hover {
+      background-color: #444;
     }
 
     /* --------------- Responsive Behavior ---------------- */
@@ -153,40 +132,36 @@
 </head>
 <body>
   <div class="sidebar">
-    <!-- LOGO -->
-    <img src="wf-logo.png" alt="WAYFINDER Logo" class="logo" />
-
-    <!-- TOKEN BADGE (Replace with real info if needed) -->
-    <div class="token-badge">WAYFINDER TOKEN: AI-Driven Route Optimization</div>
+    <!-- TOKEN BADGE (no images) -->
+    <div class="token-badge">
+      <strong>WAYFINDER TOKEN</strong><br/>
+      AI-Driven Route Optimization
+    </div>
 
     <!-- BUTTON -->
     <button id="routeButton">Generate Optimal Route</button>
 
     <!-- LOG DISPLAY -->
-    <div id="routeLog" class="log">
-      Log: 
-    </div>
+    <div id="routeLog" class="log">Log:</div>
 
     <!-- MARKER COUNTER -->
-    <div id="markerCounter" class="marker-counter">
-      Markers: 0
-    </div>
+    <div id="markerCounter" class="marker-counter">Markers: 0</div>
 
     <!-- INFO BOX -->
-    <div class="info-box">
-      CA: TOKEN NOT LIVE YET
-    </div>
-
+    <div class="info-box">CA: TOKEN NOT LIVE YET</div>
   </div>
 
   <div class="main">
     <canvas id="wayfinderCanvas"></canvas>
-    <img
-      src="x.png"
-      alt="Twitter Icon"
-      class="twitter-icon"
-      onclick="window.open('https://x.com/wayfindersh', '_blank')"
-    />
+    <!-- Simple text link for Twitter (instead of icon) -->
+    <a 
+      href="https://x.com/wayfindersh" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      class="twitter-link"
+    >
+      Follow us on X
+    </a>
   </div>
 
   <script>
@@ -194,6 +169,7 @@
     const canvas = document.getElementById("wayfinderCanvas");
     const wctx = canvas.getContext("2d");
 
+    // Adjust canvas to fill space minus the sidebar
     const sidebarWidth = window.innerWidth * 0.2;
     canvas.width = window.innerWidth - sidebarWidth;
     canvas.height = window.innerHeight;
@@ -207,18 +183,20 @@
     let markers = [];
     let pathGenerated = false;
     const markerLabels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    
+
     /* ----------------- Event Listeners ----------------- */
     // 1) Place Markers on Canvas
     canvas.addEventListener("click", (e) => {
+      // Reset if a path is already generated
       if (pathGenerated) {
         resetCanvas();
       }
 
+      // Calculate position relative to canvas
       const x = e.clientX - sidebarWidth;
       const y = e.clientY;
 
-      // If within canvas, add marker if available letters remain
+      // If within canvas, add marker (limit to 26 points max)
       if (x >= 0 && markers.length < markerLabels.length) {
         const label = markerLabels[markers.length];
         markers.push({ x, y, label });
@@ -231,12 +209,11 @@
     routeButton.addEventListener("click", () => {
       if (markers.length > 1) {
         routeLog.innerHTML += `<span class="loading">Connecting to WAYFINDER AI...</span>\n`;
-        // Simulate a delay to show "server" or "AI" communication
         setTimeout(() => {
           routeLog.innerHTML += `<span class="info">Calculating optimal path for ${markers.length} markers...</span>\n`;
           renderOptimizedRoute(markers);
           pathGenerated = true;
-        }, 1500); 
+        }, 1500);
       }
     });
 
@@ -276,16 +253,15 @@
         const dist = Math.hypot(dx, dy).toFixed(2);
 
         routeLog.innerHTML += `
-          <span class="info">Linking ${from.label} to ${to.label}</span>
-          <span class="equation">Equation: sqrt( (${to.x} - ${from.x})^2 + (${to.y} - ${from.y})^2 )</span>
-          <span class="calculation">Result: ${dist}</span>
-          
-        `;
+<span class="info">Linking ${from.label} to ${to.label}</span>
+<span class="equation">Equation: sqrt( (${to.x} - ${from.x})^2 + (${to.y} - ${from.y})^2 )</span>
+<span class="calculation">Result: ${dist}</span>\n
+`;
         // Auto-scroll the log to bottom
         routeLog.scrollTop = routeLog.scrollHeight;
 
         // Draw line
-        wctx.strokeStyle = "#ff006e"; // Hot pink line
+        wctx.strokeStyle = "#ff006e"; // hot pink
         wctx.lineWidth = 4;
         wctx.beginPath();
         wctx.moveTo(from.x, from.y);
@@ -293,7 +269,7 @@
         wctx.stroke();
 
         stepIndex++;
-        setTimeout(drawStep, 800); 
+        setTimeout(drawStep, 800);
       }
 
       drawStep();
@@ -306,8 +282,8 @@
 
     // (Optional) Handle Window Resizing
     window.addEventListener("resize", () => {
-      // Might need a more robust approach if we want dynamic canvas resizing.
-      // For simplicity, do nothing or re-initialize if needed.
+      // If you'd like to re-draw on resize, implement it here.
+      // For now, it does nothing to keep the code simple.
     });
   </script>
 </body>
